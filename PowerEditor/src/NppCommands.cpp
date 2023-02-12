@@ -2113,19 +2113,31 @@ void Notepad_plus::command(int id)
 
 			//Resize the tab height
 			int tabDpiDynamicalWidth = NppParameters::getInstance()._dpiManager.scaleX(45);
-			int tabDpiDynamicalHeight = NppParameters::getInstance()._dpiManager.scaleY(_toReduceTabBar?22:25);
+			int tabDpiDynamicalHeight = NppParameters::getInstance()._dpiManager.scaleY(_toReduceTabBar?35:35); // 22:25
 			TabCtrl_SetItemSize(_mainDocTab.getHSelf(), tabDpiDynamicalWidth, tabDpiDynamicalHeight);
 			TabCtrl_SetItemSize(_subDocTab.getHSelf(), tabDpiDynamicalWidth, tabDpiDynamicalHeight);
 			_docTabIconList.addIcons(iconDpiDynamicalSize);
 
 			//change the font
-			int stockedFont = _toReduceTabBar?DEFAULT_GUI_FONT:SYSTEM_FONT;
-			HFONT hf = (HFONT)::GetStockObject(stockedFont);
+			// int stockedFont = _toReduceTabBar?DEFAULT_GUI_FONT:SYSTEM_FONT;
+			// HFONT hf = (HFONT)::GetStockObject(stockedFont);
 
+			NONCLIENTMETRICS ncm;
+			ncm.cbSize = sizeof(NONCLIENTMETRICS);
+			SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &ncm, 0);
+			HFONT hf = CreateFontIndirect(&ncm.lfMessageFont);
 			if (hf)
 			{
-				::SendMessage(_mainDocTab.getHSelf(), WM_SETFONT, reinterpret_cast<WPARAM>(hf), MAKELPARAM(TRUE, 0));
-				::SendMessage(_subDocTab.getHSelf(), WM_SETFONT, reinterpret_cast<WPARAM>(hf), MAKELPARAM(TRUE, 0));
+				LOGFONT logFont = { 0 };
+				GetObject(hf, sizeof(logFont), &logFont);
+				logFont.lfHeight = 24; //这里设置字体大小
+				wcscpy(logFont.lfFaceName, TEXT("微软雅黑"));
+				hf = CreateFontIndirect(&logFont);
+				if (hf)
+				{
+					::SendMessage(_mainDocTab.getHSelf(), WM_SETFONT, reinterpret_cast<WPARAM>(hf), MAKELPARAM(TRUE, 0));
+					::SendMessage(_subDocTab.getHSelf(), WM_SETFONT, reinterpret_cast<WPARAM>(hf), MAKELPARAM(TRUE, 0));
+				}
 			}
 
 			::SendMessage(_pPublicInterface->getHSelf(), WM_SIZE, 0, 0);
@@ -2161,8 +2173,8 @@ void Notepad_plus::command(int id)
 			TabBarPlus::setDrawTabCloseButton(!TabBarPlus::drawTabCloseButton());
 
 			// This part is just for updating (redraw) the tabs
-			int tabDpiDynamicalHeight = NppParameters::getInstance()._dpiManager.scaleY(22);
-			int tabDpiDynamicalWidth = NppParameters::getInstance()._dpiManager.scaleX(TabBarPlus::drawTabCloseButton() ? 60 : 45);
+			int tabDpiDynamicalHeight = NppParameters::getInstance()._dpiManager.scaleY(30); //22
+			int tabDpiDynamicalWidth = NppParameters::getInstance()._dpiManager.scaleX(TabBarPlus::drawTabCloseButton() ? 65 : 50); // 60 : 45
 			TabCtrl_SetItemSize(_mainDocTab.getHSelf(), tabDpiDynamicalWidth, tabDpiDynamicalHeight);
 			TabCtrl_SetItemSize(_subDocTab.getHSelf(), tabDpiDynamicalWidth, tabDpiDynamicalHeight);
 

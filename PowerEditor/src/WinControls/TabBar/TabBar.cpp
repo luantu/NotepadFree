@@ -327,7 +327,20 @@ void TabBarPlus::init(HINSTANCE hInst, HWND parent, bool isVertical, bool isMult
 
 	LOGFONT LogFont{};
 
-	_hFont = (HFONT)::SendMessage(_hSelf, WM_GETFONT, 0, 0);
+	//_hFont = (HFONT)::SendMessage(_hSelf, WM_GETFONT, 0, 0);
+
+	NONCLIENTMETRICS ncm;
+	ncm.cbSize = sizeof(NONCLIENTMETRICS);
+	SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &ncm, 0);
+	_hFont = CreateFontIndirect(&ncm.lfMessageFont);
+	if (_hFont)
+	{
+		LOGFONT logFont = { 0 };
+		GetObject(_hFont, sizeof(logFont), &logFont);
+		logFont.lfHeight = 24; //这里设置字体大小
+		wcscpy(logFont.lfFaceName, TEXT("微软雅黑"));
+		_hFont = CreateFontIndirect(&logFont);
+	}
 
 	if (_hFont == NULL)
 		_hFont = (HFONT)::GetStockObject(DEFAULT_GUI_FONT);
@@ -337,6 +350,7 @@ void TabBarPlus::init(HINSTANCE hInst, HWND parent, bool isVertical, bool isMult
 
 	if (::GetObject(_hFont, sizeof(LOGFONT), &LogFont) != 0)
 	{
+
 		LogFont.lfEscapement  = 900;
 		LogFont.lfOrientation = 900;
 		_hVerticalFont = CreateFontIndirect(&LogFont);
@@ -363,8 +377,8 @@ void TabBarPlus::doOwnerDrawTab()
 			::SetWindowLongPtr(_hwndArray[i], GWL_STYLE, style);
 			::InvalidateRect(_hwndArray[i], NULL, TRUE);
 
-			const int paddingSizeDynamicW = NppParameters::getInstance()._dpiManager.scaleX(6);
-			const int paddingSizePlusClosebuttonDynamicW = NppParameters::getInstance()._dpiManager.scaleX(9);
+			const int paddingSizeDynamicW = NppParameters::getInstance()._dpiManager.scaleX(11);
+			const int paddingSizePlusClosebuttonDynamicW = NppParameters::getInstance()._dpiManager.scaleX(14);
 			::SendMessage(_hwndArray[i], TCM_SETPADDING, 0, MAKELPARAM(_drawTabCloseButton ? paddingSizePlusClosebuttonDynamicW : paddingSizeDynamicW, 0));
 		}
 	}

@@ -40,6 +40,7 @@
 #include "fileBrowser.h"
 #include "Common.h"
 #include "NppDarkMode.h"
+#include <winnt.rh>
 
 using namespace std;
 
@@ -347,22 +348,31 @@ LRESULT Notepad_plus::init(HWND hwnd)
 
 	TabBarPlus::doDragNDrop(true);
 
+	NONCLIENTMETRICS ncm;
+	ncm.cbSize = sizeof(NONCLIENTMETRICS);
+	SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &ncm, 0);
+	HFONT hf = CreateFontIndirect(&ncm.lfMessageFont);
+	if (hf)
+	{
+		LOGFONT logFont = { 0 };
+		GetObject(hf, sizeof(logFont), &logFont);
+		logFont.lfHeight = 24; //这里设置字体大小
+		wcscpy(logFont.lfFaceName, TEXT("微软雅黑"));
+		hf = CreateFontIndirect(&logFont);
+
+		::SendMessage(_mainDocTab.getHSelf(), WM_SETFONT, reinterpret_cast<WPARAM>(hf), MAKELPARAM(TRUE, 0));
+		::SendMessage(_subDocTab.getHSelf(), WM_SETFONT, reinterpret_cast<WPARAM>(hf), MAKELPARAM(TRUE, 0));
+	}
+
 	if (_toReduceTabBar)
 	{
-		HFONT hf = static_cast<HFONT>(::GetStockObject(DEFAULT_GUI_FONT));
-
-		if (hf)
-		{
-			::SendMessage(_mainDocTab.getHSelf(), WM_SETFONT, reinterpret_cast<WPARAM>(hf), MAKELPARAM(TRUE, 0));
-			::SendMessage(_subDocTab.getHSelf(), WM_SETFONT, reinterpret_cast<WPARAM>(hf), MAKELPARAM(TRUE, 0));
-		}
-		int tabDpiDynamicalHeight = nppParam._dpiManager.scaleY(22);
+		// HFONT hf = static_cast<HFONT>(::GetStockObject(DEFAULT_GUI_FONT));
+		int tabDpiDynamicalHeight = nppParam._dpiManager.scaleY(30); // 22
 		int tabDpiDynamicalWidth = nppParam._dpiManager.scaleX(45);
 		TabCtrl_SetItemSize(_mainDocTab.getHSelf(), tabDpiDynamicalWidth, tabDpiDynamicalHeight);
 		TabCtrl_SetItemSize(_subDocTab.getHSelf(), tabDpiDynamicalWidth, tabDpiDynamicalHeight);
 	}
 	_mainDocTab.display();
-
 
 	TabBarPlus::doDragNDrop((tabBarStatus & TAB_DRAGNDROP) != 0);
 	TabBarPlus::setDrawTopBar((tabBarStatus & TAB_DRAWTOPBAR) != 0);
